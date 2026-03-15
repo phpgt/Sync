@@ -10,7 +10,7 @@ use Gt\Sync\DirectorySync;
 use Gt\Sync\SymlinkSync;
 
 class SyncCommand extends Command {
-	public function run(ArgumentValueList $arguments = null):void {
+	public function run(?ArgumentValueList $arguments = null):void {
 		$source = $arguments->get("source");
 		$destination = $arguments->get("destination");
 		try {
