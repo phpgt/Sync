@@ -10,7 +10,7 @@ use Gt\Sync\DirectorySync;
 use Gt\Sync\SymlinkSync;
 
 class SyncCommand extends Command {
-	public function run(?ArgumentValueList $arguments = null):void {
+	public function run(?ArgumentValueList $arguments = null):int {
 		$source = $arguments->get("source");
 		$destination = $arguments->get("destination");
 		try {
@@ -26,6 +26,8 @@ class SyncCommand extends Command {
 		else {
 			$this->performDirectorySync($arguments, $source, $destination, $pattern);
 		}
+
+		return 0;
 	}
 
 	public function getName():string {
