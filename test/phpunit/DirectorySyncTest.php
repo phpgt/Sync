@@ -1,9 +1,9 @@
 <?php
-namespace Gt\Sync\Test;
+namespace GT\Sync\Test;
 
 use FilesystemIterator;
-use Gt\Sync\DirectorySync;
-use Gt\Sync\SyncException;
+use GT\Sync\DirectorySync;
+use GT\Sync\SyncException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -216,6 +216,36 @@ class DirectorySyncTest extends SyncTestCase {
 		self::assertTrue($sut->check());
 	}
 
+	public function testCheckDetectsChangedSourceFile():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		mkdir($source, 0775, true);
+		$fileList = $this->createRandomFiles($source);
+
+		$sut = new DirectorySync($source, $dest);
+		$sut->exec();
+		self::assertTrue($sut->check(DirectorySync::COMPARE_HASH));
+
+		file_put_contents($fileList[0], "UPDATED!!!", FILE_APPEND);
+
+		self::assertFalse($sut->check(DirectorySync::COMPARE_HASH));
+	}
+
+	public function testCheckDetectsExtraDestinationFile():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		mkdir($source, 0775, true);
+		$this->createRandomFiles($source);
+
+		$sut = new DirectorySync($source, $dest);
+		$sut->exec();
+		self::assertTrue($sut->check());
+
+		file_put_contents("$dest/extra.file", "extra");
+
+		self::assertFalse($sut->check());
+	}
+
 	public function testSetPattern():void {
 		$source = $this->getRandomTmp();
 		$dest = $this->getRandomTmp();
@@ -230,7 +260,7 @@ class DirectorySyncTest extends SyncTestCase {
 		do {
 			$file3 = $this->getRandomFileFromDirectory($source);
 		}
-		while($file3 === $file2);
+		while(in_array($file3, [$file1, $file2]));
 
 // Rename three files to abcdef.file to abcdef.filematch
 		rename($file1, $file1 . "match");
@@ -242,6 +272,21 @@ class DirectorySyncTest extends SyncTestCase {
 		$copiedFiles = $sut->getCopiedFilesList();
 		self::assertCount(3, $copiedFiles);
 
+		$directory = new RecursiveDirectoryIterator(
+			$dest,
+			FilesystemIterator::SKIP_DOTS
+		);
+		$iterator = new RecursiveIteratorIterator($directory);
+		$destinationFiles = array_filter(
+			iterator_to_array($iterator),
+			fn(SplFileInfo $file):bool => $file->isFile()
+		);
+
+		self::assertCount(3, $destinationFiles);
+		foreach($copiedFiles as $copiedFile) {
+			self::assertStringEndsWith(".filematch", $copiedFile);
+		}
+
 		$sut->exec();
 		$copiedFiles = $sut->getCopiedFilesList();
 		self::assertCount(0, $copiedFiles);
@@ -251,11 +296,11 @@ class DirectorySyncTest extends SyncTestCase {
 		$source = $this->getRandomTmp();
 		$dest = $this->getRandomTmp();
 		mkdir($source, recursive: true);
-		$this->createRandomFiles($source, 3);
+		$fileList = $this->createRandomFiles($source, 3);
 
 		$sut = new DirectorySync($source, $dest);
 		$sut->exec();
 		$copiedFiles = $sut->getCopiedFilesList();
-		self::assertCount(3, $copiedFiles);
+		self::assertCount(count($fileList), $copiedFiles);
 	}
 }

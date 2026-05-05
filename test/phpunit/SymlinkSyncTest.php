@@ -1,6 +1,6 @@
 <?php
-namespace Gt\Sync\Test;
-use Gt\Sync\SymlinkSync;
+namespace GT\Sync\Test;
+use GT\Sync\SymlinkSync;
 
 class SymlinkSyncTest extends SyncTestCase {
 	public function testSymLink_directory():void {

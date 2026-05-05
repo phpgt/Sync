@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Sync\Test;
+namespace GT\Sync\Test;
 use Exception;
 use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
@@ -125,6 +125,8 @@ class SyncTestCase extends TestCase {
 		string $actualPath,
 		bool $invertLogic = false
 	):void {
+		clearstatcache();
+
 		$totallyEqual = true;
 
 		$directory = new RecursiveDirectoryIterator(
@@ -140,7 +142,7 @@ class SyncTestCase extends TestCase {
 		$expectedFiles = iterator_to_array($iterator);
 
 		$directory = new RecursiveDirectoryIterator(
-			$expectedPath,
+			$actualPath,
 			RecursiveDirectoryIterator::SKIP_DOTS
 			| RecursiveDirectoryIterator::CURRENT_AS_FILEINFO
 			| RecursiveDirectoryIterator::KEY_AS_PATHNAME

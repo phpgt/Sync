@@ -17,12 +17,14 @@
 
 	"autoload": {
 		"psr-4": {
+			"GT\\Sync\\": "./src",
 			"Gt\\Sync\\": "./src"
 		}
 	},
 
 	"autoload-dev": {
 		"psr-4": {
+			"GT\\Sync\\Test\\": "./test/phpunit",
 			"Gt\\Sync\\Test\\": "./test/phpunit"
 		}
 	},
@@ -30,6 +32,19 @@
 	"bin": [
 		"bin/sync"
 	],
+
+	"scripts": {
+		"phpunit": "vendor/bin/phpunit --configuration phpunit.xml",
+		"phpstan": "vendor/bin/phpstan analyse --level 6 src --memory-limit 256M",
+		"phpcs": "vendor/bin/phpcs src --standard=phpcs.xml",
+		"phpmd": "vendor/bin/phpmd src/ text phpmd.xml",
+		"test": [
+			"@phpunit",
+			"@phpstan",
+			"@phpcs",
+			"@phpmd"
+		]
+	},
 
 	"keywords": [
 		"rsync",
@@ -45,7 +60,7 @@
 	"funding": [
 		{
 			"type": "github",
-			"url": "https://github.com/sponsors/PhpGt"
+			"url": "https://github.com/sponsors/phpgt"
 		}
 	]
 }

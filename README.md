@@ -24,6 +24,9 @@ Synchronise two directories.
 ## Example usage
 
 ```php
+use GT\Sync\DirectorySync;
+use GT\Sync\SyncException;
+
 $source = "/var/www/example.com";
 $destination = "/var/backup/example.com";
 

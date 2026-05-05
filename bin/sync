@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 use Gt\Cli\Argument\CommandArgumentList;
-use Gt\Sync\Command\SyncCommand;
+use GT\Sync\Command\SyncCommand;
 use Gt\Cli\Application;
 
 foreach([ __DIR__ . "/../../..", __DIR__ . "/../vendor" ] as $vendor) {

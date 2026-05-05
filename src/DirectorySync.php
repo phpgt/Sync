@@ -1,10 +1,9 @@
 <?php
-namespace Gt\Sync;
+namespace GT\Sync;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use SplFileInfo;
 use Webmozart\Glob\Glob;
 use Webmozart\PathUtil\Path;
 
@@ -41,10 +40,18 @@ class DirectorySync extends AbstractSync {
 	 * @return bool True if source and destination are in sync
 	 */
 	public function check(int $settings = self::DEFAULT_SETTINGS):bool {
-		return $this->compareSourceDestination(
-			".",
-			$settings
-		);
+		$this->checkSettings($settings);
+
+		if(!is_dir($this->destination)) {
+			return false;
+		}
+
+		$iteratorSettings = FilesystemIterator::KEY_AS_PATHNAME
+			| FilesystemIterator::CURRENT_AS_PATHNAME
+			| FilesystemIterator::SKIP_DOTS;
+
+		return $this->sourceMatchesDestination($iteratorSettings, $settings)
+			&& $this->destinationMatchesSource($iteratorSettings);
 	}
 
 	/**
@@ -178,13 +185,73 @@ class DirectorySync extends AbstractSync {
 		}
 	}
 
+	protected function sourceMatchesDestination(
+		int $iteratorSettings,
+		int $settings,
+	):bool {
+		$sourceIterator = new RecursiveDirectoryIterator(
+			$this->source,
+			$iteratorSettings
+		);
+
+		$iterator = new RecursiveIteratorIterator($sourceIterator);
+		foreach($iterator as $pathName) {
+			$pathName = Path::makeAbsolute($pathName, getcwd());
+			$relativePath = substr(
+				$pathName,
+				strlen($this->source) + 1
+			);
+
+			if(!$this->fileMatchesGlob($relativePath)) {
+				continue;
+			}
+
+			if(!$this->compareSourceDestination($relativePath, $settings)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	protected function destinationMatchesSource(int $iteratorSettings):bool {
+		$destinationIterator = new RecursiveDirectoryIterator(
+			$this->destination,
+			$iteratorSettings
+		);
+
+		$iterator = new RecursiveIteratorIterator(
+			$destinationIterator,
+			RecursiveIteratorIterator::CHILD_FIRST
+		);
+
+		foreach($iterator as $pathName) {
+			$pathName = Path::makeAbsolute($pathName, getcwd());
+			$relativePath = substr(
+				$pathName,
+				strlen($this->destination) + 1
+			);
+
+			if(!$this->fileMatchesGlob($relativePath)) {
+				continue;
+			}
+
+			if(!$this->sourceFileExists($relativePath)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	/**
 	 * @param int $settings
 	 * @return void
 	 */
 	protected function performIteration(int $settings): void {
 		$iteratorSettings = FilesystemIterator::KEY_AS_PATHNAME
-			| FilesystemIterator::CURRENT_AS_FILEINFO;
+			| FilesystemIterator::CURRENT_AS_PATHNAME
+			| FilesystemIterator::SKIP_DOTS;
 
 		if(!is_dir($this->destination)) {
 			mkdir($this->destination, 0775, true);
@@ -207,14 +274,7 @@ class DirectorySync extends AbstractSync {
 			RecursiveIteratorIterator::CHILD_FIRST
 		);
 
-		foreach($iterator as $pathName => $file) {
-			$filename = $file->getFilename();
-			/** @var $file SplFileInfo */
-			if($filename === "."
-				|| $filename === "..") {
-				continue;
-			}
-
+		foreach($iterator as $pathName) {
 			$pathName = Path::makeAbsolute($pathName, getcwd());
 
 			$relativePath = substr(
@@ -222,7 +282,7 @@ class DirectorySync extends AbstractSync {
 				strlen($this->destination) + 1
 			);
 
-			if($file->isDir()) {
+			if(is_dir($pathName)) {
 				if(!$this->sourceFileExists($relativePath)
 				&& $this->isEmptyDirectory($pathName)) {
 					$this->delete($relativePath);
@@ -258,15 +318,7 @@ class DirectorySync extends AbstractSync {
 		);
 
 		$iterator = new RecursiveIteratorIterator($sourceIterator);
-		foreach($iterator as $pathName => $file) {
-			$filename = $file->getFilename();
-
-			/** @var $file SplFileInfo */
-			if($filename === "."
-				|| $filename === "..") {
-				continue;
-			}
-
+		foreach($iterator as $pathName) {
 			$pathName = Path::makeAbsolute($pathName, getcwd());
 			$relativePath = substr(
 				$pathName,
