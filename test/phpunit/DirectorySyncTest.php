@@ -122,6 +122,28 @@ class DirectorySyncTest extends SyncTestCase {
 		self::assertDirectoryContentsIdentical($source, $dest);
 	}
 
+	public function testDeleteDirectoryWhenUsingRecursiveJsPattern():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		$sourceDirectory = $source . "/nested/source/dir";
+		mkdir($sourceDirectory, 0775, true);
+		file_put_contents($sourceDirectory . "/example.js", "console.log('x');");
+
+		$sut = new DirectorySync($source, $dest, "**/*.js");
+		$sut->exec();
+
+		self::assertFileExists("$dest/nested/source/dir/example.js");
+
+		unlink("$sourceDirectory/example.js");
+		rmdir($sourceDirectory);
+		rmdir(dirname($sourceDirectory));
+		rmdir(dirname(dirname($sourceDirectory)));
+		$sut->exec();
+
+		self::assertFileDoesNotExist("$dest/nested/source/dir/example.js");
+		self::assertDirectoryDoesNotExist("$dest/nested");
+	}
+
 	public function testCopyWrongConfig():void {
 		$source = $this->getRandomTmp();
 		$dest = $this->getRandomTmp();

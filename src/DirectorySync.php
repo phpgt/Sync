@@ -282,7 +282,7 @@ class DirectorySync extends AbstractSync {
 				strlen($this->destination) + 1
 			);
 
-			if($file->isDir()) {
+			if(is_dir($pathName)) {
 				if(!$this->sourceFileExists($relativePath)
 				&& $this->isEmptyDirectory($pathName)) {
 					$this->delete($relativePath);
