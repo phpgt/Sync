@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Sync\Test;
+namespace GT\Sync\Test;
 use Exception;
 use FilesystemIterator;
 use PHPUnit\Framework\TestCase;

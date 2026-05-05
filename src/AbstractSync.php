@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Sync;
+namespace GT\Sync;
 
 abstract class AbstractSync {
 	public function __construct(

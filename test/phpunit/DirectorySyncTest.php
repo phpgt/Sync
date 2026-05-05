@@ -1,9 +1,9 @@
 <?php
-namespace Gt\Sync\Test;
+namespace GT\Sync\Test;
 
 use FilesystemIterator;
-use Gt\Sync\DirectorySync;
-use Gt\Sync\SyncException;
+use GT\Sync\DirectorySync;
+use GT\Sync\SyncException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;

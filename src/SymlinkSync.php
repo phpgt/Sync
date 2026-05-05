@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Sync;
+namespace GT\Sync;
 
 class SymlinkSync extends AbstractSync {
 	/** @var array<string> */

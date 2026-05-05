@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Sync;
+namespace GT\Sync;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;

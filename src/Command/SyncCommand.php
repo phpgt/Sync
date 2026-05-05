@@ -1,13 +1,13 @@
 <?php
-namespace Gt\Sync\Command;
+namespace GT\Sync\Command;
 
 use Gt\Cli\Argument\ArgumentValueList;
 use Gt\Cli\Argument\ArgumentValueListNotSetException;
 use Gt\Cli\Command\Command;
 use Gt\Cli\Parameter\NamedParameter;
 use Gt\Cli\Parameter\Parameter;
-use Gt\Sync\DirectorySync;
-use Gt\Sync\SymlinkSync;
+use GT\Sync\DirectorySync;
+use GT\Sync\SymlinkSync;
 
 class SyncCommand extends Command {
 	public function run(?ArgumentValueList $arguments = null):int {

@@ -1,5 +1,5 @@
 <?php
-namespace Gt\Sync;
+namespace GT\Sync;
 use RuntimeException;
 
 class SyncException extends RuntimeException {}
