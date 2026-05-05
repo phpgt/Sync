@@ -1,7 +1,9 @@
 Synchronise two directories.
 ============================
 
-`rsync` is the tool of choice for ensuring that two directories have the same content, but is only present by default on Unix systems. This repository provides simple recursive directory synchronisation in plain PHP, compatible on Linux, Mac and Windows.
+This repository provides recursive directory synchronisation in PHP. It can copy files from a source directory to a destination directory, remove destination files that no longer exist in the source, and create symbolic links.
+
+The package can be used directly from PHP code or through the `vendor/bin/sync` command line script. In WebEngine applications it is normally used by the build system to move client-side files into the public `www/` directory.
 
 ***
 
@@ -18,7 +20,7 @@ Synchronise two directories.
 	<img src="https://badge.status.php.gt/sync-version.svg" alt="Current version" />
 </a>
 <a href="http://www.php.gt/sync" target="_blank">
-	<img src="https://badge.status.php.gt/sync-docs.svg" alt="PHP.Gt/Sync documentation" />
+	<img src="https://badge.status.php.gt/sync-docs.svg" alt="PHP.GT/Sync documentation" />
 </a>
 
 ## Example usage
@@ -48,10 +50,10 @@ echo "Skipped: " . count($sync->getSkippedFilesList());
 Features
 --------
 
-+ Cross-platform compatible directory synchronisation (Linux, Windows, Mac).
++ Directory synchronisation using PHP filesystem functions.
 + Selective sync through glob matches (only sync js files within script directory with `/script/**/*.js`).
 + Get statistics of copied/deleted/skipped files after sync execution.
-+ Low memory footprint.
++ Create symbolic links from source files or directories to destination paths.
 
 # Proudly sponsored by
 
