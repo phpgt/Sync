@@ -282,6 +282,15 @@ class DirectorySync extends AbstractSync {
 				strlen($this->destination) + 1
 			);
 
+			if($file->isDir()) {
+				if(!$this->sourceFileExists($relativePath)
+				&& $this->isEmptyDirectory($pathName)) {
+					$this->delete($relativePath);
+					array_push($this->deletedFiles, $relativePath);
+				}
+				continue;
+			}
+
 			if(!$this->fileMatchesGlob($relativePath)) {
 				continue;
 			}
@@ -291,6 +300,12 @@ class DirectorySync extends AbstractSync {
 				array_push($this->deletedFiles, $relativePath);
 			}
 		}
+	}
+
+	protected function isEmptyDirectory(string $path):bool {
+		$files = scandir($path);
+
+		return $files === [".", ".."];
 	}
 
 	protected function performSourceIteration(
