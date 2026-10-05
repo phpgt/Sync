@@ -1,8 +1,8 @@
 #!/usr/bin/env php
 <?php
-use Gt\Cli\Argument\CommandArgumentList;
+use GT\Cli\Argument\CommandArgumentList;
 use GT\Sync\Command\SyncCommand;
-use Gt\Cli\Application;
+use GT\Cli\Application;
 
 foreach([ __DIR__ . "/../../..", __DIR__ . "/../vendor" ] as $vendor) {
 	$autoload = "$vendor/autoload.php";

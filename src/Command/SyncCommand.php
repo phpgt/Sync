@@ -1,11 +1,11 @@
 <?php
 namespace GT\Sync\Command;
 
-use Gt\Cli\Argument\ArgumentValueList;
-use Gt\Cli\Argument\ArgumentValueListNotSetException;
-use Gt\Cli\Command\Command;
-use Gt\Cli\Parameter\NamedParameter;
-use Gt\Cli\Parameter\Parameter;
+use GT\Cli\Argument\ArgumentValueList;
+use GT\Cli\Argument\ArgumentValueListNotSetException;
+use GT\Cli\Command\Command;
+use GT\Cli\Parameter\NamedParameter;
+use GT\Cli\Parameter\Parameter;
 use GT\Sync\DirectorySync;
 use GT\Sync\SymlinkSync;
 
