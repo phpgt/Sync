@@ -24,8 +24,7 @@
 
 	"autoload-dev": {
 		"psr-4": {
-			"GT\\Sync\\Test\\": "./test/phpunit",
-			"Gt\\Sync\\Test\\": "./test/phpunit"
+			"GT\\Sync\\Test\\": "./test/phpunit"
 		}
 	},
 
