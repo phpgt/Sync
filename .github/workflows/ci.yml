@@ -66,6 +66,7 @@ jobs:
         with:
           php_version: ${{ matrix.php }}
           php_extensions: xdebug
+          version: composer
           coverage_text: _coverage/coverage.txt
           coverage_clover: _coverage/clover.xml
 
@@ -165,6 +166,7 @@ jobs:
       - name: PHP Code Sniffer
         uses: php-actions/phpcs@v1
         with:
+          version: composer
           php_version: ${{ matrix.php }}
           path: src/
           standard: phpcs.xml
