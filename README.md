@@ -8,10 +8,10 @@ Synchronise two directories.
 <a href="https://github.com/PhpGt/Sync/actions" target="_blank">
 	<img src="https://badge.status.php.gt/sync-build.svg" alt="Build status" />
 </a>
-<a href="https://scrutinizer-ci.com/g/PhpGt/Sync" target="_blank">
+<a href="https://app.codacy.com/gh/PhpGt/Sync" target="_blank">
 	<img src="https://badge.status.php.gt/sync-quality.svg" alt="Code quality" />
 </a>
-<a href="https://scrutinizer-ci.com/g/PhpGt/Sync" target="_blank">
+<a href="https://app.codecov.io/gh/PhpGt/Sync" target="_blank">
 	<img src="https://badge.status.php.gt/sync-coverage.svg" alt="Code coverage" />
 </a>
 <a href="https://packagist.org/packages/PhpGt/Sync" target="_blank">
@@ -24,6 +24,9 @@ Synchronise two directories.
 ## Example usage
 
 ```php
+use GT\Sync\DirectorySync;
+use GT\Sync\SyncException;
+
 $source = "/var/www/example.com";
 $destination = "/var/backup/example.com";
 
@@ -49,3 +52,9 @@ Features
 + Selective sync through glob matches (only sync js files within script directory with `/script/**/*.js`).
 + Get statistics of copied/deleted/skipped files after sync execution.
 + Low memory footprint.
+
+# Proudly sponsored by
+
+[JetBrains Open Source sponsorship program](https://www.jetbrains.com/community/opensource/)
+
+[![JetBrains logo.](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.svg)](https://www.jetbrains.com/community/opensource/)

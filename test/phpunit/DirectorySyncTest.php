@@ -1,47 +1,14 @@
 <?php
-namespace Gt\Sync\Test;
+namespace GT\Sync\Test;
 
 use FilesystemIterator;
-use Gt\Sync\DirectorySync;
-use Gt\Sync\SyncException;
-use PHPUnit\Framework\TestCase;
+use GT\Sync\DirectorySync;
+use GT\Sync\SyncException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
-class DirectorySyncTest extends TestCase {
-	public function tearDown():void {
-		$baseTmp = $this->getBaseTempDirectory();
-
-		if(!is_dir($baseTmp)) {
-			return;
-		}
-
-		$directory = new RecursiveDirectoryIterator(
-			$baseTmp,
-			FilesystemIterator::KEY_AS_PATHNAME
-			| FilesystemIterator::CURRENT_AS_FILEINFO
-		);
-		$iterator = new RecursiveIteratorIterator(
-			$directory,
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
-		foreach($iterator as $filePath => $file) {
-			/** @var $file SplFileInfo */
-			if($file->getFilename() === "."
-			|| $file->getFilename() === "..") {
-				continue;
-			}
-
-			if($file->isDir()) {
-				rmdir($filePath);
-			}
-			else {
-				unlink($filePath);
-			}
-		}
-	}
-
+class DirectorySyncTest extends SyncTestCase {
 	public function testSourceNotExists():void {
 		self::expectException(SyncException::class);
 		self::expectExceptionMessage("Source directory does not exist");
@@ -155,6 +122,28 @@ class DirectorySyncTest extends TestCase {
 		self::assertDirectoryContentsIdentical($source, $dest);
 	}
 
+	public function testDeleteDirectoryWhenUsingRecursiveJsPattern():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		$sourceDirectory = $source . "/nested/source/dir";
+		mkdir($sourceDirectory, 0775, true);
+		file_put_contents($sourceDirectory . "/example.js", "console.log('x');");
+
+		$sut = new DirectorySync($source, $dest, "**/*.js");
+		$sut->exec();
+
+		self::assertFileExists("$dest/nested/source/dir/example.js");
+
+		unlink("$sourceDirectory/example.js");
+		rmdir($sourceDirectory);
+		rmdir(dirname($sourceDirectory));
+		rmdir(dirname(dirname($sourceDirectory)));
+		$sut->exec();
+
+		self::assertFileDoesNotExist("$dest/nested/source/dir/example.js");
+		self::assertDirectoryDoesNotExist("$dest/nested");
+	}
+
 	public function testCopyWrongConfig():void {
 		$source = $this->getRandomTmp();
 		$dest = $this->getRandomTmp();
@@ -227,6 +216,36 @@ class DirectorySyncTest extends TestCase {
 		self::assertTrue($sut->check());
 	}
 
+	public function testCheckDetectsChangedSourceFile():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		mkdir($source, 0775, true);
+		$fileList = $this->createRandomFiles($source);
+
+		$sut = new DirectorySync($source, $dest);
+		$sut->exec();
+		self::assertTrue($sut->check(DirectorySync::COMPARE_HASH));
+
+		file_put_contents($fileList[0], "UPDATED!!!", FILE_APPEND);
+
+		self::assertFalse($sut->check(DirectorySync::COMPARE_HASH));
+	}
+
+	public function testCheckDetectsExtraDestinationFile():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		mkdir($source, 0775, true);
+		$this->createRandomFiles($source);
+
+		$sut = new DirectorySync($source, $dest);
+		$sut->exec();
+		self::assertTrue($sut->check());
+
+		file_put_contents("$dest/extra.file", "extra");
+
+		self::assertFalse($sut->check());
+	}
+
 	public function testSetPattern():void {
 		$source = $this->getRandomTmp();
 		$dest = $this->getRandomTmp();
@@ -241,7 +260,7 @@ class DirectorySyncTest extends TestCase {
 		do {
 			$file3 = $this->getRandomFileFromDirectory($source);
 		}
-		while($file3 === $file2);
+		while(in_array($file3, [$file1, $file2]));
 
 // Rename three files to abcdef.file to abcdef.filematch
 		rename($file1, $file1 . "match");
@@ -253,254 +272,35 @@ class DirectorySyncTest extends TestCase {
 		$copiedFiles = $sut->getCopiedFilesList();
 		self::assertCount(3, $copiedFiles);
 
+		$directory = new RecursiveDirectoryIterator(
+			$dest,
+			FilesystemIterator::SKIP_DOTS
+		);
+		$iterator = new RecursiveIteratorIterator($directory);
+		$destinationFiles = array_filter(
+			iterator_to_array($iterator),
+			fn(SplFileInfo $file):bool => $file->isFile()
+		);
+
+		self::assertCount(3, $destinationFiles);
+		foreach($copiedFiles as $copiedFile) {
+			self::assertStringEndsWith(".filematch", $copiedFile);
+		}
+
 		$sut->exec();
 		$copiedFiles = $sut->getCopiedFilesList();
 		self::assertCount(0, $copiedFiles);
 	}
 
-	/** @return array<string> */
-	protected function createRandomFiles(
-		string $directory,
-		int $numFiles = 100,
-		int $randomNestLevel = 3
-	):array {
-		$fileList = [];
+	public function testDefaultPatternMatchesAllFiles():void {
+		$source = $this->getRandomTmp();
+		$dest = $this->getRandomTmp();
+		mkdir($source, recursive: true);
+		$fileList = $this->createRandomFiles($source, 3);
 
-		for($i = 0; $i < $numFiles; $i++) {
-			$subPathParts = [];
-			$nestLevel = rand(0, $randomNestLevel);
-
-			for($j = 0; $j <= $nestLevel; $j++) {
-				$subPathParts []= uniqid();
-			}
-
-			$subPath = implode(DIRECTORY_SEPARATOR,
-				$subPathParts
-			) . ".file";
-
-			$path = implode(DIRECTORY_SEPARATOR, [
-				$directory,
-				$subPath,
-			]);
-
-			if(!is_dir(dirname($path))) {
-				mkdir(dirname($path), 0775, true);
-			}
-			file_put_contents($path, uniqid("content-"));
-			array_push($fileList, $path);
-		}
-
-		return $fileList;
-	}
-
-	protected function getRandomFileFromDirectory(string $dir):string {
-		do {
-			$fileList = glob("$dir/*");
-			$file = $fileList[array_rand($fileList)];
-			if(is_dir($file)) {
-				$dir = $file;
-			}
-			else {
-				return $file;
-			}
-		}
-		while($fileList);
-
-		return "";
-	}
-
-	protected function getRandomSubdirectoryFromDirectory(string $dir):string {
-		$fileList = glob("$dir/*");
-		do {
-			$file = $fileList[array_rand($fileList)];
-		}
-		while(!is_dir($file));
-
-		return $file;
-	}
-
-	protected function recursiveDeleteDirectory(string $dir):void{
-		$directory = new RecursiveDirectoryIterator(
-			$dir,
-			RecursiveDirectoryIterator::SKIP_DOTS
-			| RecursiveDirectoryIterator::KEY_AS_PATHNAME
-			| RecursiveDirectoryIterator::CURRENT_AS_FILEINFO
-		);
-		$iterator = new RecursiveIteratorIterator(
-			$directory,
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
-
-		foreach($iterator as $pathName => $file) {
-			/** @var $file SplFileInfo */
-			if($file->getFilename() === "."
-			|| $file->getFilename() === "..") {
-				continue;
-			}
-
-			if(is_dir($pathName)) {
-				rmdir($pathName);
-			}
-			else {
-				unlink($pathName);
-			}
-		}
-
-		if(is_dir($dir)) {
-			rmdir($dir);
-		}
-	}
-
-	protected function getBaseTempDirectory():string {
-		return implode(DIRECTORY_SEPARATOR, [
-			sys_get_temp_dir(),
-			"phpgt",
-			"sync",
-		]);
-	}
-
-	protected function getRandomTmp():string {
-		return implode(DIRECTORY_SEPARATOR, [
-			$this->getBaseTempDirectory(),
-			uniqid()
-		]);
-	}
-
-	protected static function assertDirectoryContentsIdentical(
-		string $expectedPath,
-		string $actualPath,
-		bool $invertLogic = false
-	):void {
-		$totallyEqual = true;
-
-		$directory = new RecursiveDirectoryIterator(
-			$expectedPath,
-			RecursiveDirectoryIterator::SKIP_DOTS
-			| RecursiveDirectoryIterator::CURRENT_AS_FILEINFO
-			| RecursiveDirectoryIterator::KEY_AS_PATHNAME
-		);
-		$iterator = new RecursiveIteratorIterator(
-			$directory,
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
-		$expectedFiles = iterator_to_array($iterator);
-
-		$directory = new RecursiveDirectoryIterator(
-			$expectedPath,
-			RecursiveDirectoryIterator::SKIP_DOTS
-			| RecursiveDirectoryIterator::CURRENT_AS_FILEINFO
-			| RecursiveDirectoryIterator::KEY_AS_PATHNAME
-		);
-		$iterator = new RecursiveIteratorIterator(
-			$directory,
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
-		$actualFiles = iterator_to_array($iterator);
-
-		foreach($expectedFiles as $expectedFilePath => $file) {
-			/** @var SplFileInfo $file */
-			$relativePath = substr(
-				$expectedFilePath,
-				strlen($expectedPath) + 1
-			);
-
-			$actualFilePath = implode(DIRECTORY_SEPARATOR, [
-				$actualPath,
-				$relativePath
-			]);
-
-			if(is_dir($expectedFilePath)) {
-				if($invertLogic) {
-					if(!is_dir($actualFilePath)) {
-						$totallyEqual = false;
-					}
-				}
-				else {
-					self::assertDirectoryExists($actualFilePath);
-				}
-			}
-			else {
-				if($invertLogic) {
-					$fileExists = file_exists($actualFilePath);
-					$filemTimeEquals =
-						filemtime($expectedFilePath)
-						=== filemtime($actualFilePath);
-					$md5Equals =
-						md5_file($expectedFilePath)
-						=== md5_file($actualFilePath);
-					$equality =
-						$fileExists
-						&& $filemTimeEquals
-						&& $md5Equals;
-
-					if(!$equality) {
-						$totallyEqual = false;
-					}
-				}
-				else {
-					self::assertFileExists($actualFilePath);
-					self::assertEquals(
-						filemtime($expectedFilePath),
-						filemtime($actualFilePath),
-						$actualFilePath
-					);
-					self::assertEquals(
-						md5_file($expectedFilePath),
-						md5_file($actualFilePath),
-						$actualFilePath
-					);
-				}
-			}
-		}
-
-// Asset deletions from source.
-		foreach($actualFiles as $actualFilePath => $file) {
-			/** @var SplFileInfo $file */
-			$relativePath = substr(
-				$actualFilePath,
-				strlen($actualPath) + 1
-			);
-
-			$expectedFilePath = implode(DIRECTORY_SEPARATOR, [
-				$expectedPath,
-				$relativePath
-			]);
-
-			if(is_dir($actualFilePath)) {
-				if($invertLogic) {
-					if(!is_dir($expectedFilePath)) {
-						$totallyEqual = false;
-					}
-				}
-				else {
-					self::assertDirectoryExists($expectedFilePath);
-				}
-			}
-			else {
-				if($invertLogic) {
-					if(!is_file($expectedFilePath)) {
-						$totallyEqual = false;
-					}
-				}
-				else {
-					self::assertFileExists($expectedFilePath);
-				}
-			}
-		}
-
-		if($invertLogic) {
-			self::assertFalse($totallyEqual);
-		}
-	}
-
-	protected static function assertDirectoryContentsNotIdentical(
-		string $expectedPath,
-		string $actualPath
-	):void {
-		self::assertDirectoryContentsIdentical(
-			$expectedPath,
-			$actualPath,
-			true
-		);
+		$sut = new DirectorySync($source, $dest);
+		$sut->exec();
+		$copiedFiles = $sut->getCopiedFilesList();
+		self::assertCount(count($fileList), $copiedFiles);
 	}
 }

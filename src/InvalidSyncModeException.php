@@ -1,4 +1,4 @@
 <?php
-namespace Gt\Sync;
+namespace GT\Sync;
 
 class InvalidSyncModeException extends SyncException {}

@@ -1,15 +1,16 @@
 <?php
-namespace Gt\Sync\Command;
+namespace GT\Sync\Command;
 
-use Gt\Cli\Argument\ArgumentValueList;
-use Gt\Cli\Argument\ArgumentValueListNotSetException;
-use Gt\Cli\Command\Command;
-use Gt\Cli\Parameter\NamedParameter;
-use Gt\Cli\Parameter\Parameter;
-use Gt\Sync\DirectorySync;
+use GT\Cli\Argument\ArgumentValueList;
+use GT\Cli\Argument\ArgumentValueListNotSetException;
+use GT\Cli\Command\Command;
+use GT\Cli\Parameter\NamedParameter;
+use GT\Cli\Parameter\Parameter;
+use GT\Sync\DirectorySync;
+use GT\Sync\SymlinkSync;
 
 class SyncCommand extends Command {
-	public function run(ArgumentValueList $arguments = null):void {
+	public function run(?ArgumentValueList $arguments = null):int {
 		$source = $arguments->get("source");
 		$destination = $arguments->get("destination");
 		try {
@@ -19,18 +20,14 @@ class SyncCommand extends Command {
 			$pattern = "**/*";
 		}
 
-		$sync = new DirectorySync($source, $destination, $pattern);
-		$sync->exec();
-
-		if(!$arguments->contains("silent")) {
-			$this->write("Copied ");
-			$this->write((string)count($sync->getCopiedFilesList()));
-			$this->write(", skipped ");
-			$this->write((string)count($sync->getSkippedFilesList()));
-			$this->write(", deleted ");
-			$this->write((string)count($sync->getDeletedFilesList()));
-			$this->writeLine(".");
+		if($arguments->contains("symlink")) {
+			$this->performSymlinkSync($arguments, $source, $destination);
 		}
+		else {
+			$this->performDirectorySync($arguments, $source, $destination, $pattern);
+		}
+
+		return 0;
 	}
 
 	public function getName():string {
@@ -69,6 +66,11 @@ class SyncCommand extends Command {
 			),
 			new Parameter(
 				false,
+				"symlink",
+				"l",
+			),
+			new Parameter(
+				false,
 				"silent",
 				"s"
 			),
@@ -78,5 +80,56 @@ class SyncCommand extends Command {
 				"d"
 			)
 		];
+	}
+
+	private function performDirectorySync(
+		ArgumentValueList $arguments,
+		string $source,
+		string $destination,
+		string $pattern,
+	):void {
+		$sync = new DirectorySync($source, $destination, $pattern);
+		$sync->exec();
+
+		if(!$arguments->contains("silent")) {
+			$this->write("Copied ");
+			$this->write((string)count($sync->getCopiedFilesList()));
+			$this->write(", skipped ");
+			$this->write((string)count($sync->getSkippedFilesList()));
+			$this->write(", deleted ");
+			$this->write((string)count($sync->getDeletedFilesList()));
+			$this->writeLine(".");
+		}
+	}
+
+	private function performSymlinkSync(
+		ArgumentValueList $arguments,
+		string $source,
+		string $destination,
+	):void {
+		$sync = new SymlinkSync($source, $destination);
+		$sync->exec();
+
+		$countDirectories = count($sync->getLinkedDirectoriesList());
+		$countFiles = count($sync->getLinkedFilesList());
+		$countSkipped = count($sync->getSkippedList());
+		$countFailed = count($sync->getFailedList());
+
+		if($countDirectories + $countFiles + $countFailed === 0
+		&& $countSkipped > 0) {
+			return;
+		}
+
+		if(!$arguments->contains("silent")) {
+			$this->write("Linked: directories ");
+			$this->write((string)$countDirectories);
+			$this->write(", files ");
+			$this->write((string)$countFiles);
+			$this->write(", skipped ");
+			$this->write((string)$countSkipped);
+			$this->write(", failed ");
+			$this->write((string)$countFailed);
+			$this->writeLine(".");
+		}
 	}
 }
