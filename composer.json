@@ -5,7 +5,8 @@
 	"require": {
 		"php": ">=8.2",
 		"phpgt/cli": "^2.0",
-		"webmozart/glob": "4.4.*"
+		"webmozart/glob": "4.6.*",
+		"webmozart/path-util": "^2.3"
 	},
 
 	"require-dev": {
