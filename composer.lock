@@ -8,23 +8,23 @@
     "packages": [
         {
             "name": "phpgt/cli",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpgt/Cli.git",
-                "reference": "0b7824aee62e63a8bde05777da7cfa5f1edd3e21"
+                "reference": "89981e4d18a2d28296037e408977cd7d1e84c6e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpgt/Cli/zipball/0b7824aee62e63a8bde05777da7cfa5f1edd3e21",
-                "reference": "0b7824aee62e63a8bde05777da7cfa5f1edd3e21",
+                "url": "https://api.github.com/repos/phpgt/Cli/zipball/89981e4d18a2d28296037e408977cd7d1e84c6e7",
+                "reference": "89981e4d18a2d28296037e408977cd7d1e84c6e7",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "ext-readline": "*",
                 "php": ">=8.2",
-                "phpgt/daemon": "^1.1.3"
+                "phpgt/daemon": "^1.1"
             },
             "require-dev": {
                 "phpmd/phpmd": "^2.13",
@@ -57,7 +57,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpgt/Cli/issues",
-                "source": "https://github.com/phpgt/Cli/tree/v2.0.0"
+                "source": "https://github.com/phpgt/Cli/tree/v2.0.1"
             },
             "funding": [
                 {
@@ -65,20 +65,20 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-10T11:22:34+00:00"
+            "time": "2026-11-03T18:19:37+00:00"
         },
         {
             "name": "phpgt/daemon",
-            "version": "v1.1.7",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpgt/Daemon.git",
-                "reference": "b537b1c713e481ec6a97d70143e559829f3c7f4c"
+                "reference": "ef7e953c06005c4d8230780b4e0f028fa01d5b6d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpgt/Daemon/zipball/b537b1c713e481ec6a97d70143e559829f3c7f4c",
-                "reference": "b537b1c713e481ec6a97d70143e559829f3c7f4c",
+                "url": "https://api.github.com/repos/phpgt/Daemon/zipball/ef7e953c06005c4d8230780b4e0f028fa01d5b6d",
+                "reference": "ef7e953c06005c4d8230780b4e0f028fa01d5b6d",
                 "shasum": ""
             },
             "require": {
@@ -86,10 +86,10 @@
                 "php": ">=8.1"
             },
             "require-dev": {
-                "phpmd/phpmd": "^2.13",
-                "phpstan/phpstan": "^v1.10",
+                "phpmd/phpmd": "^3.0",
+                "phpstan/phpstan": "^v2.2",
                 "phpunit/phpunit": "^10.5",
-                "squizlabs/php_codesniffer": "^3.7"
+                "squizlabs/php_codesniffer": "^4.0"
             },
             "type": "library",
             "autoload": {
@@ -102,7 +102,7 @@
             "description": "Background script execution with cross-platform compatible streaming.",
             "support": {
                 "issues": "https://github.com/phpgt/Daemon/issues",
-                "source": "https://github.com/phpgt/Daemon/tree/v1.1.7"
+                "source": "https://github.com/phpgt/Daemon/tree/v1.2.0"
             },
             "funding": [
                 {
@@ -110,7 +110,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-07-10T09:53:00+00:00"
+            "time": "2026-11-11T11:12:43+00:00"
         },
         {
             "name": "webmozart/assert",
